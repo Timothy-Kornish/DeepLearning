@@ -9,7 +9,15 @@
 
 from keras.models import Sequential
 from keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense
+from keras.preprocessing import image
 from keras.preprocessing.image import ImageDataGenerator
+import numpy as np
+
+import os
+import sys
+sys.path.append('../')
+from util import ModelSerializer
+
 
 #-------------------------------------------------------------------------------
 #		                 Initializing the CNN
@@ -60,7 +68,7 @@ classifier.add(Flatten())
 #		                 Step 4 - Full Connection
 #-------------------------------------------------------------------------------
 
-classifier.add(Dense(units = 1, activation = "relu"))
+#classifier.add(Dense(units = 1, activation = "relu"))
 classifier.add(Dense(units = 1, activation = "sigmoid"))
 
 #-------------------------------------------------------------------------------
@@ -90,9 +98,51 @@ test_set= test_datagen.flow_from_directory('dataset/test_set',
                                                         target_size = (64, 64),
                                                         batch_size = 32,
                                                         class_mode = 'binary')
-
+# typically steps_per_epoch is divided by batch_size but not necessary
+# typically validation_steps is divided by batch_size but not necessary
 classifier.fit_generator(training_set,
-                         steps_per_epoch = 8000,
+                         steps_per_epoch = 8000/32,
                          epochs = 25,
                          validation_data = test_set,
-                         validation_steps = 2000)
+                         validation_steps = 2000/32)
+
+#-------------------------------------------------------------------------------
+#		                 Serializing CNN Model
+#-------------------------------------------------------------------------------
+
+ModelSerializer.serialize_model(classifier, 'model', 'weights')
+
+#-------------------------------------------------------------------------------
+#		                 Making predictions on single images
+#-------------------------------------------------------------------------------
+
+
+test_image_1 = image.load_img('dataset/single_prediction/cat_or_dog_1.jpg', target_size = (64, 64))
+test_image_2 = image.load_img('dataset/single_prediction/cat_or_dog_2.jpg', target_size = (64, 64))
+
+test_image_1 = image.img_to_array(test_image_1)
+test_image_2 = image.img_to_array(test_image_2)
+
+# adding a 4th dimension for predict method
+# this dimension corresponds to the batch, cannot accept single inputs
+# only batch of size single or greater inputs
+test_image_1 = np.expand_dims(test_image_1, axis = 0)
+test_image_2 = np.expand_dims(test_image_2, axis = 0)
+
+predict_1 = classifier.predict(test_image_1)
+predict_2 = classifier.predict(test_image_2)
+
+# to understand output of 0 or 1, cats are 0, dogs are 1
+training_set.class_indices
+
+if predict_1[0][0] == 1:
+    prediction = 'dog'
+else:
+    prediction = 'cat'
+print("The image 1 is a ", prediction)
+
+if predict_2[0][0] == 1:
+    prediction = 'dog'
+else:
+    prediction = 'cat'
+print("The image 2 is a ", prediction)
