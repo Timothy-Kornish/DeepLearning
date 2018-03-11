@@ -12,6 +12,11 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
 
+import os
+import sys
+sys.path.append('../')
+from util import ModelSerializer
+
 
 
 # Import the training_set
@@ -28,9 +33,9 @@ training_set_scaled = scaler.fit_transform(training_set)
 # Create a Data structure with 60 timesteps and 1 output
 x_train = []
 y_train = []
-days_of_memory = 60
+days_of_memory = 120
 for i in range(days_of_memory, 1258):
-    x_train.append(training_set_scaled[i - 60: i, 0])
+    x_train.append(training_set_scaled[i - days_of_memory: i, 0])
     y_train.append(training_set_scaled[i, 0])
 
 x_train, y_train = np.array(x_train), np.array(y_train)
@@ -70,6 +75,22 @@ regressor.add(LSTM(units = units, return_sequences = return_sequences))
 regressor.add(Dropout(rate = 0.2))
 
 # Adding the fourth LSTM layer and some Dropout regularisation
+regressor.add(LSTM(units = units, return_sequences = return_sequences))
+regressor.add(Dropout(rate = 0.2))
+
+# Adding the fifth LSTM layer and some Dropout regularisation
+regressor.add(LSTM(units = units, return_sequences = return_sequences))
+regressor.add(Dropout(rate = 0.2))
+
+# Adding the sixth LSTM layer and some Dropout regularisation
+regressor.add(LSTM(units = units, return_sequences = return_sequences))
+regressor.add(Dropout(rate = 0.2))
+
+# Adding the seventh LSTM layer and some Dropout regularisation
+regressor.add(LSTM(units = units, return_sequences = return_sequences))
+regressor.add(Dropout(rate = 0.2))
+
+# Adding the eighth LSTM layer and some Dropout regularisation
 regressor.add(LSTM(units = units, return_sequences = False))
 regressor.add(Dropout(rate = 0.2))
 
@@ -86,6 +107,9 @@ regressor.compile(optimizer = 'adam', loss = 'mean_squared_error')
 batch_size = 32
 regressor.fit(x = x_train, y = y_train, epochs = 100, batch_size = batch_size)
 
+# Serialize model
+ModelSerializer.serialize_model_json(regressor, 'RNN_8_layers_120_days', 'RNN_weights_8_layers_120_days')
+
 #-------------------------------------------------------------------------------
 # Part 3 - Making the predictions
 #-------------------------------------------------------------------------------
@@ -96,14 +120,14 @@ real_stock_price = dataset_test.iloc[:, 1:2].values
 
 # Get the predicted stock price of 2017
 dataset_total = pd.concat((stock_training['Open'], dataset_test['Open']), axis = 0) # concat columns, axis = 0
-inputs = dataset_total[len(dataset_total) - len(dataset_test) - 60:].values
+inputs = dataset_total[len(dataset_total) - len(dataset_test) - days_of_memory:].values
 inputs = inputs.reshape(-1, 1)
 inputs = scaler.transform(inputs)
 
 x_test = []
 
-for i in range(60, 80):
-    x_test.append(inputs[i - 60: i, 0])
+for i in range(days_of_memory, days_of_memory + 20):
+    x_test.append(inputs[i - days_of_memory: i, 0])
 
 x_test = np.array(x_test)
 
