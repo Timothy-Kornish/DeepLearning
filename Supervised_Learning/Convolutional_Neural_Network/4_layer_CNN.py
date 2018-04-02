@@ -3,6 +3,11 @@ from keras.layers import Convolution2D, MaxPooling2D, Flatten, Dense, Dropout
 from ketas.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
 
+import os
+import sys
+sys.path.append('../')
+from util import ModelSerializer
+
 img_width, img_height = 150, 150
 
 def initialize_model(p = 0.5, input_shape = (32, 32, 3)):
@@ -76,6 +81,8 @@ def train_model(batch_size = 32, epochs = 20, img_width = img_width, img_height 
                         epochs = epochs,
                         validation_data = test_set,
                         validation_steps = 2000/batch_size)
+
+    ModelSerializer.serialize_model_json(model, '4_layer_CNN', '4_layer_CNN_weights')
 
 def main():
     train_model(batch_size = 32, epochs = 100)

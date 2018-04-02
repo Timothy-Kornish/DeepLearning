@@ -110,7 +110,7 @@ classifier.fit_generator(training_set,
 #		                 Serializing CNN Model
 #-------------------------------------------------------------------------------
 
-ModelSerializer.serialize_model(classifier, 'model', 'weights')
+ModelSerializer.serialize_model_json(classifier, 'model', 'weights')
 
 #-------------------------------------------------------------------------------
 #		                 Making predictions on single images

@@ -91,7 +91,7 @@ classifier.fit_generator(training_set,
                          callbacks = [history])
 
 # Serialize Model
-ModelSerializer.serialize_model(classifier, 'loss_history', 'loss_history_weights')
+ModelSerializer.serialize_model_json(classifier, 'loss_history', 'loss_history_weights')
 
 # Predict single cases
 test_image_1 = image.load_img('dataset/single_prediction/cat_or_dog_1.jpg', target_size = input_size)
