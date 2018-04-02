@@ -1,6 +1,6 @@
 import os
 import numpy
-from keras.models import model_from_json, model_from_yaml
+from keras.models import load_model, model_from_json, model_from_yaml
 
 class ModelSerializer:
 
@@ -36,7 +36,7 @@ class ModelSerializer:
 
     def serialize_model_yaml(model, model_filename, model_weights_filename):
         with open(model_filename + '.yaml', 'w') as yaml_file:
-            yaml_file.write(model_yaml)
+            yaml_file.write(model.to_yaml())
         model.save_weights(model_weights_filename + '.h5')
 
     def load_model_yaml(model_filename, model_weights_filename, loss = 'binary_crossentropy', optimizer = 'rmsprop', metrics =['accuracy']):
@@ -44,4 +44,13 @@ class ModelSerializer:
         model = yaml_file.read()
         yaml_file.close()
         model = model_from_yaml(model)
-        model.load
+        model.load_weights(model_weights_filename)
+        model.compile(loss = loss, optimizer = optimizer, metrics = metrics)
+        return model
+
+    def serialize_model_keras(model, model_filename):
+        model.save(model_filename)
+
+    def load_model_keras(model_filename):
+        model = load_model(model_filename)
+        return model
